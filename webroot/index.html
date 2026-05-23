@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #fff;
+      color: #1a1a1b;
+      font-size: 14px;
+    }
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 16px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .stat {
+      background: #f6f7f8;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 24px;
+      font-weight: 700;
+      color: #ff4500;
+    }
+    .stat-lbl {
+      font-size: 11px;
+      color: #878a8c;
+      margin-top: 2px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      text-align: left;
+      padding: 6px 8px;
+      color: #878a8c;
+      border-bottom: 1px solid #edeff1;
+      font-weight: 500;
+    }
+    td {
+      padding: 8px;
+      border-bottom: 1px solid #edeff1;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: capitalize;
+    }
+    .minor { background: #fff3cd; color: #664d03; }
+    .major { background: #ffe0b2; color: #7f3800; }
+    .severe { background: #ffcdd2; color: #7f0000; }
+    input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #edeff1;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <h2>StrikeManager Dashboard</h2>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num" id="total-warnings">-</div>
+      <div class="stat-lbl">Recent warnings</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="at-risk">-</div>
+      <div class="stat-lbl">Pending approvals</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="pending">-</div>
+      <div class="stat-lbl">Escalations open</div>
+    </div>
+  </div>
+  <input type="text" id="search" placeholder="Search username..." />
+  <table>
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Rule</th>
+        <th>Severity</th>
+        <th>Date</th>
+        <th>By</th>
+      </tr>
+    </thead>
+    <tbody id="warnings-table"></tbody>
+  </table>
+  <script>
+    let allData = [];
+
+    document.getElementById('search').addEventListener('input', (e) => {
+      filter(e.target.value);
+    });
+
+    window.addEventListener('message', (e) => {
+      const msg = e.data;
+      if (msg && msg.type === 'INIT') {
+        allData = msg.warnings || [];
+        document.getElementById('total-warnings').textContent = String(allData.length);
+        document.getElementById('at-risk').textContent = String(msg.atRisk ?? 0);
+        document.getElementById('pending').textContent = String(msg.pending ?? 0);
+        renderTable(allData);
+      }
+    });
+
+    function renderTable(data) {
+      const tbody = document.getElementById('warnings-table');
+      tbody.innerHTML = data.map((w) => {
+        const date = new Date(w.timestamp).toLocaleDateString();
+        return `<tr>
+          <td>u/${w.username}</td>
+          <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis">${w.rule}</td>
+          <td><span class="badge ${w.severity}">${w.severity}</span></td>
+          <td>${date}</td>
+          <td>u/${w.modName}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function filter(query) {
+      const q = query.toLowerCase();
+      renderTable(allData.filter((w) => w.username.toLowerCase().includes(q)));
+    }
+
+    window.parent.postMessage({ type: 'READY' }, '*');
+  </script>
+</body>
+</html>

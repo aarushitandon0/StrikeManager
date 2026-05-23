@@ -1,0 +1,36 @@
+name: strikemanager
+description: >-
+  A native warning and strike system for subreddit moderators. Issue warnings
+  with automatic escalation at configurable thresholds.
+version: 1.0.0
+author: StrikeManager Contributors
+capabilities:
+  - redis
+  - redditAPI
+settings:
+  - name: threshold
+    label: Strike threshold before escalation
+    type: number
+    defaultValue: 3
+    helpText: How many active strikes triggers a mod escalation prompt
+  - name: banDuration
+    label: Suggested ban duration (days, 0 = permanent)
+    type: number
+    defaultValue: 7
+  - name: expiryDays
+    label: Strike expiry (days)
+    type: number
+    defaultValue: 180
+    helpText: Warnings older than this many days do not count toward the threshold
+  - name: notifyUsers
+    label: Notify users when warned
+    type: boolean
+    defaultValue: true
+  - name: rules
+    label: Subreddit rules (one per line)
+    type: paragraph
+    defaultValue: |-
+      Rule 1: No spam
+      Rule 2: Be respectful
+      Rule 3: No self-promotion
+    lineHeight: 6
